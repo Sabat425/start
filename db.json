@@ -1,0 +1,172 @@
+[
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMDaTp5XKmobJOKK8BGDf_ZTCiDYwMAAlsfAAK0ZNFV9zwSlnExqM02BA",
+    "unique_id": "AgADWx8AArRk0VU",
+    "name": "s930_sado.sql",
+    "size": 2622,
+    "mime": "application/octet-stream",
+    "upload_date": "2025-12-11T07:57:16.499Z",
+    "message_id": 3,
+    "message_link": "https://t.me/c/3299621497/3"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMIaTp76AAB3zzWfIWCAAF7yxT7oCd73gACZx8AArRk0VW8ahCIF-JAHzYE",
+    "unique_id": "AgADZx8AArRk0VU",
+    "name": "config.json",
+    "size": 457,
+    "mime": "application/json",
+    "upload_date": "2025-12-11T08:08:08.844Z",
+    "message_id": 8,
+    "message_link": "https://t.me/c/3299621497/8"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMJaTp76cQQ8Qm_aFZMZOUvWChP8GEAAmgfAAK0ZNFVg4C8q08BCh42BA",
+    "unique_id": "AgADaB8AArRk0VU",
+    "name": "devices.txt",
+    "size": 469905,
+    "mime": "text/plain",
+    "upload_date": "2025-12-11T08:08:10.211Z",
+    "message_id": 9,
+    "message_link": "https://t.me/c/3299621497/9"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMKaTp76oTdmb-t00tXFVaIlpIlJsUAAmkfAAK0ZNFVndlq_0M1-c02BA",
+    "unique_id": "AgADaR8AArRk0VU",
+    "name": "main.py",
+    "size": 9515,
+    "mime": "text/x-python",
+    "upload_date": "2025-12-11T08:08:10.765Z",
+    "message_id": 10,
+    "message_link": "https://t.me/c/3299621497/10"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMLaTp76-iaLM_VBsgY6_2j3g8dVtoAAmofAAK0ZNFVnSBphPtuCUU2BA",
+    "unique_id": "AgADah8AArRk0VU",
+    "name": "proxies.txt",
+    "size": 303129,
+    "mime": "text/plain",
+    "upload_date": "2025-12-11T08:08:11.914Z",
+    "message_id": 11,
+    "message_link": "https://t.me/c/3299621497/11"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMMaTp77LroFnB2_l9DZvaHMf5dVZUAAmsfAAK0ZNFVM86UYioafUc2BA",
+    "unique_id": "AgADax8AArRk0VU",
+    "name": "README.md",
+    "size": 1,
+    "mime": "text/markdown",
+    "upload_date": "2025-12-11T08:08:12.446Z",
+    "message_id": 12,
+    "message_link": "https://t.me/c/3299621497/12"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMNaTp8S2pK9Q2kPOX-FvHryTsy400AAm8fAAK0ZNFVFlZPz-8y73s2BA",
+    "unique_id": "AgADbx8AArRk0VU",
+    "name": "os.sh",
+    "size": 12615,
+    "mime": "text/x-sh",
+    "upload_date": "2025-12-11T08:09:47.393Z",
+    "message_id": 13,
+    "message_link": "https://t.me/c/3299621497/13"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMOaTp_0PC_lPYWfu18kvynJ1m9uKkAAoYfAAK0ZNFVdH2ozwZltGs2BA",
+    "unique_id": "AgADhh8AArRk0VU",
+    "name": "20240507_Guidelikne_CBS_SD_The Service Catalogue and Request Management Process_V5_Eng.pdf",
+    "size": 10935410,
+    "mime": "application/pdf",
+    "upload_date": "2025-12-11T08:24:49.172Z",
+    "message_id": 14,
+    "message_link": "https://t.me/c/3299621497/14"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMPaTqAYK7hMxMakueRqxzVcvmbnmsAAogfAAK0ZNFVudngI9xGjps2BA",
+    "unique_id": "AgADiB8AArRk0VU",
+    "name": ".1.sh",
+    "size": 556,
+    "mime": "text/x-sh",
+    "upload_date": "2025-12-11T08:27:12.681Z",
+    "message_id": 15,
+    "message_link": "https://t.me/c/3299621497/15"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMQaTqAYCu_D2e1Hoti4bi6Gj9S9MAAAokfAAK0ZNFVioEvgr3_ymY2BA",
+    "unique_id": "AgADiR8AArRk0VU",
+    "name": ".1zshrc",
+    "size": 1743,
+    "mime": "application/octet-stream",
+    "upload_date": "2025-12-11T08:27:13.300Z",
+    "message_id": 16,
+    "message_link": "https://t.me/c/3299621497/16"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMRaTqAYd1Rs7WTf2YurPVDgYgJj2AAAoofAAK0ZNFVmUlfa17RcmU2BA",
+    "unique_id": "AgADih8AArRk0VU",
+    "name": ".2.sh",
+    "size": 520,
+    "mime": "text/x-sh",
+    "upload_date": "2025-12-11T08:27:13.838Z",
+    "message_id": 17,
+    "message_link": "https://t.me/c/3299621497/17"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMSaTqAYrlk6-FttpBsHDGaKEuL1UkAAosfAAK0ZNFVdr-brYLJKA82BA",
+    "unique_id": "AgADix8AArRk0VU",
+    "name": ".2zshrc",
+    "size": 1968,
+    "mime": "application/octet-stream",
+    "upload_date": "2025-12-11T08:27:14.381Z",
+    "message_id": 18,
+    "message_link": "https://t.me/c/3299621497/18"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMTaTqAYposBHvvKZ-rRYPUTp_nlq4AAowfAAK0ZNFVMfe_h3dasV42BA",
+    "unique_id": "AgADjB8AArRk0VU",
+    "name": ".3.sh",
+    "size": 954,
+    "mime": "text/x-sh",
+    "upload_date": "2025-12-11T08:27:14.960Z",
+    "message_id": 19,
+    "message_link": "https://t.me/c/3299621497/19"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMUaTqCdhbOv8Xebk16q-zrPrABxoUAApUfAAK0ZNFVNSRNSJJh6qY2BA",
+    "unique_id": "AgADlR8AArRk0VU",
+    "name": "20241113_Guideline_CBS_SD_Core Banking System-T24 R18 User Management and Till Creation_V2_Eng.pdf",
+    "size": 5560200,
+    "mime": "application/pdf",
+    "upload_date": "2025-12-11T08:36:06.627Z",
+    "message_id": 20,
+    "message_link": "https://t.me/c/3299621497/20"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMVaTqCgG2Ksex0K5JneOxNpEgZieIAApcfAAK0ZNFV2osHPwpfAd02BA",
+    "unique_id": "AgADlx8AArRk0VU",
+    "name": "20250625_Problem_Management_Process.pdf",
+    "size": 13309928,
+    "mime": "application/pdf",
+    "upload_date": "2025-12-11T08:36:17.130Z",
+    "message_id": 21,
+    "message_link": "https://t.me/c/3299621497/21"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMWaTqGLKF2E63XsPSG9YvL_082HrsAAqsfAAK0ZNFVoSOh_mYAAU1rNgQ",
+    "unique_id": "AgADqx8AArRk0VU",
+    "name": "Dark Blue Simple Bordered Corporate Resume (3).pdf",
+    "size": 116590,
+    "mime": "application/pdf",
+    "upload_date": "2025-12-11T08:51:56.842Z",
+    "message_id": 22,
+    "message_link": "https://t.me/c/3299621497/22"
+  },
+  {
+    "id": "BQACAgUAAyEGAATErDp5AAMXaTqGMrkP4ZF36kMHj9ESNXQW0M8AAqwfAAK0ZNFVR9Ew4DtOidg2BA",
+    "unique_id": "AgADrB8AArRk0VU",
+    "name": "Mock Midterm Exam 2025 MCQ.pdf",
+    "size": 2409243,
+    "mime": "application/pdf",
+    "upload_date": "2025-12-11T08:52:02.534Z",
+    "message_id": 23,
+    "message_link": "https://t.me/c/3299621497/23"
+  }
+]
