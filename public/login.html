@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Amret Mobile - Secure Gate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        white: '#ebf1ed',
+                        pale: '#b9cabe',
+                        primary: '#81938a',
+                        darkGreen: '#50605a',
+                        surface: '#2d2e2b',
+                        black: '#121212',
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'scan': 'scan 4s linear infinite',
+                        'pulse-glow': 'pulseGlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)', opacity: '0' },
+                            '50%': { opacity: '1' },
+                            '100%': { transform: 'translateY(500%)', opacity: '0' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
+                            '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Setup */
+        body {
+            background-color: #121212;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Grainy Noise Texture */
+        .noise-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Dynamic Mesh Gradient Background */
+        .mesh-gradient {
+            background: radial-gradient(at 0% 0%, #2d2e2b 0px, transparent 50%),
+                        radial-gradient(at 100% 0%, #50605a 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, #121212 0px, transparent 50%),
+                        radial-gradient(at 0% 100%, #81938a 0px, transparent 50%);
+            filter: blur(80px);
+            opacity: 0.6;
+        }
+
+        /* The Card */
+        .neo-glass {
+            background: rgba(45, 46, 43, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 20px 60px -10px rgba(0,0,0,0.6);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* Input Styling */
+        .custom-input {
+            background: transparent;
+            border-bottom: 2px solid #50605a;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* The magical focus effect */
+        .focus-mode .input-group {
+            opacity: 0.3;
+            filter: blur(1px);
+            transform: scale(0.98);
+            transition: all 0.5s ease;
+        }
+        
+        .focus-mode .input-group.active {
+            opacity: 1;
+            filter: blur(0px);
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        .custom-input:focus {
+            border-color: #81938a;
+            box-shadow: 0 10px 30px -10px rgba(129, 147, 138, 0.2);
+            background: linear-gradient(to bottom, transparent, rgba(129, 147, 138, 0.05));
+        }
+
+        .custom-input:focus + label,
+        .custom-input:not(:placeholder-shown) + label {
+            transform: translateY(-24px) scale(0.85);
+            color: #b9cabe;
+            letter-spacing: 1px;
+        }
+
+        /* Button Glitch/Tech Effect */
+        .tech-btn {
+            background-size: 200% auto;
+            background-image: linear-gradient(45deg, #81938a 0%, #50605a 51%, #81938a 100%);
+            transition: 0.5s;
+        }
+        .tech-btn:hover {
+            background-position: right center;
+            box-shadow: 0 0 20px rgba(129, 147, 138, 0.4);
+        }
+
+    </style>
+</head>
+<body class="h-screen w-full flex items-center justify-center relative font-sans text-white">
+
+    <!-- 1. Background Layers -->
+    <div class="fixed inset-0 bg-black z-0"></div>
+    <!-- Moving Color Blobs -->
+    <div class="fixed inset-0 z-0 mesh-gradient animate-pulse-glow"></div>
+    <div class="fixed top-[-20%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] animate-blob z-0"></div>
+    <div class="fixed bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-darkGreen/20 rounded-full blur-[100px] animate-blob animation-delay-2000 z-0"></div>
+    <!-- Noise Overlay -->
+    <div class="noise-bg"></div>
+
+    <!-- 2. Main Login Interface -->
+    <div class="w-full max-w-md p-1 relative z-10 mx-6 perspective-container">
+        
+        <!-- Decorative Border Line -->
+        <div class="absolute -top-10 left-1/2 -translate-x-1/2 h-20 w-[1px] bg-gradient-to-b from-transparent to-primary/50"></div>
+
+        <div class="neo-glass rounded-3xl p-8 sm:p-10 relative overflow-hidden group">
+            
+            <!-- Scanning Light Effect -->
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[100px] w-full -translate-y-full opacity-0 group-hover:animate-scan pointer-events-none"></div>
+
+            <!-- Logo Area -->
+            <div class="text-center mb-12 relative">
+                <div class="w-16 h-16 mx-auto border border-primary/30 rounded-xl flex items-center justify-center mb-4 rotate-45 hover:rotate-90 transition-transform duration-700 bg-surface/50">
+                    <div class="w-10 h-10 bg-primary/20 -rotate-45 flex items-center justify-center rounded">
+                        <span class="font-bold text-xl text-white">A</span>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight text-white mb-1">AMRET</h1>
+                <p class="text-pale text-xs tracking-[0.2em] uppercase opacity-60">Secure Banking Portal</p>
+            </div>
+
+            <!-- Form -->
+            <form id="loginForm" class="space-y-8" autocomplete="off">
+                
+                <!-- ID Input -->
+                <div class="input-group relative group transition-all duration-300">
+                    <input type="text" id="identifier" placeholder=" " required
+                        class="custom-input w-full py-3 px-2 text-white outline-none text-lg font-medium peer placeholder-transparent rounded-t-lg"
+                    >
+                    <label class="absolute left-2 top-3 text-gray-400 pointer-events-none transition-all duration-300 origin-left">
+                        Username / Phone
+                    </label>
+                    <div class="absolute right-0 bottom-3 text-primary opacity-0 peer-focus:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div class="input-group relative group transition-all duration-300">
+                    <input type="password" id="password" placeholder=" " required
+                        class="custom-input w-full py-3 px-2 text-white outline-none text-lg font-medium peer placeholder-transparent rounded-t-lg"
+                    >
+                    <label class="absolute left-2 top-3 text-gray-400 pointer-events-none transition-all duration-300 origin-left">
+                        Password
+                    </label>
+                    <div class="absolute right-0 bottom-3 text-primary opacity-0 peer-focus:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Error Display -->
+                <div id="errorMsg" class="h-0 overflow-hidden text-red-400 text-sm text-center tracking-wide transition-all duration-300 opacity-0 transform translate-y-[-10px]">
+                    Access Denied: Invalid Credentials
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-2">
+                    <button type="submit" id="submitBtn" class="tech-btn w-full py-4 rounded-xl text-white font-bold tracking-widest relative overflow-hidden group active:scale-[0.98]">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            <span id="btnText">AUTHENTICATE</span>
+                            <svg id="arrowIcon" class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            <!-- Loader -->
+                            <svg id="btnLoader" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                    
+                    <div class="flex justify-between items-center mt-8 text-xs text-pale/60 uppercase tracking-wider">
+                        <a href="#" class="hover:text-white transition-colors border-b border-transparent hover:border-white/50 pb-0.5">Recovery</a>
+                        <a href="#" class="hover:text-white transition-colors border-b border-transparent hover:border-white/50 pb-0.5">New Account</a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        
+        <!-- Bottom Decoration -->
+        <div class="text-center mt-8">
+             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/30 border border-white/5 backdrop-blur-sm">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-[10px] text-pale tracking-widest font-mono">SYSTEM OPERATIONAL</span>
+             </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Focus Mode Logic (The "Focus" Effect) ---
+        const inputs = document.querySelectorAll('.custom-input');
+        const form = document.getElementById('loginForm');
+
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                form.classList.add('focus-mode');
+                input.closest('.input-group').classList.add('active');
+            });
+            input.addEventListener('blur', () => {
+                form.classList.remove('focus-mode');
+                input.closest('.input-group').classList.remove('active');
+            });
+        });
+
+        // --- Auth Logic ---
+        const userId = localStorage.getItem('bank_userId');
+        const loginTime = localStorage.getItem('bank_loginTime');
+        
+        if (userId && loginTime && (Date.now() - loginTime < 300000)) {
+            document.body.style.opacity = '0';
+            setTimeout(() => { window.location.href = '/dashboard'; }, 300);
+        } else {
+            localStorage.clear();
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('identifier').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const arrowIcon = document.getElementById('arrowIcon');
+            const btnLoader = document.getElementById('btnLoader');
+
+            // Hide Error
+            errorMsg.style.height = '0';
+            errorMsg.style.opacity = '0';
+            errorMsg.classList.add('translate-y-[-10px]');
+            
+            // Loading State
+            btn.disabled = true;
+            btnText.textContent = 'VERIFYING';
+            arrowIcon.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+
+            try {
+                // Fake delay for effect
+                // await new Promise(r => setTimeout(r, 1500)); 
+
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    localStorage.setItem('bank_userId', data.userId);
+                    localStorage.setItem('bank_loginTime', Date.now());
+                    
+                    // Success Visuals
+                    btn.classList.remove('from-[#81938a]', 'to-[#50605a]');
+                    btn.style.background = '#4ade80'; // Bright green success
+                    btn.style.color = '#000';
+                    btnText.textContent = "ACCESS GRANTED";
+                    btnLoader.classList.add('hidden');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 800);
+                } else {
+                    throw new Error(data.message || 'Invalid Credentials');
+                }
+            } catch (err) {
+                // Error State
+                errorMsg.style.height = 'auto';
+                errorMsg.style.opacity = '1';
+                errorMsg.classList.remove('translate-y-[-10px]');
+                errorMsg.textContent = err.message || "Connection Error";
+                
+                // Reset Button
+                btn.disabled = false;
+                btnText.textContent = "AUTHENTICATE";
+                btn.style.background = '';
+                btn.style.color = '';
+                arrowIcon.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+                
+                // Shake Card
+                const card = document.querySelector('.neo-glass');
+                card.animate([
+                    { transform: 'translateX(0)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(10px)' },
+                    { transform: 'translateX(0)' }
+                ], { duration: 400 });
+            }
+        });
+    </script>
+</body>
+</html>

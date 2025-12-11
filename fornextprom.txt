@@ -1,0 +1,5 @@
+now let make account.js
+when i run node account.js it gonna said login account it said input email or phone number and password so the first input ca be 2 ad login it said uncess or sucess and show info of acount and said it has selectionhas
+Trasnfer Money to qr id ( later we create app that) awe scan qr and we know it qr which account and which currency of it
+and has sletion
+crreate qr code it gonna turn the qr RNB:.... to qr image for scanning u feel me ? andhas exit selction and
