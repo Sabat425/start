@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudBox V7</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Highlight.js (Code Coloring) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#3b82f6',     // Blue
+                        dark: '#020617',      // Deep Slate
+                        card: '#0f172a',      // Card BG
+                        accent: '#6366f1',    // Indigo
+                        success: '#10b981',   // Emerald
+                        warning: '#f59e0b',   // Amber
+                        danger: '#ef4444'     // Red
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        /* Base Texture */
+        body {
+            background-color: #020617;
+            /* Subtle Noise */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; border: 2px solid #020617; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* PDF Page Style */
+        .pdf-page-canvas {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 24px;
+            transition: width 0.2s ease; 
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative text-slate-200 font-sans overflow-x-hidden selection:bg-brand/30 selection:text-white">
+
+    <!-- Background Glows -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-[10%] left-[20%] w-[600px] h-[600px] bg-brand/10 blur-[100px] rounded-full opacity-50 mix-blend-screen"></div>
+        <div class="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] bg-accent/10 blur-[120px] rounded-full opacity-40 mix-blend-screen"></div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Logo -->
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="w-10 h-10 bg-gradient-to-br from-brand to-accent rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand/20">
+                    <i class="ph-fill ph-cloud-arrow-up text-xl"></i>
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="font-bold text-lg tracking-tight text-white leading-none">CloudBox</h1>
+                    <span class="text-[10px] uppercase tracking-widest text-brand font-semibold mt-1">V7 Secure Storage</span>
+                </div>
+            </div>
+
+            <!-- Stats Badge (Desktop) -->
+            <div class="hidden md:flex items-center gap-4 px-5 py-2 rounded-full bg-white/5 border border-white/5 backdrop-blur-md">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-hard-drives text-brand"></i>
+                    <span class="text-xs font-medium text-slate-400">Used:</span>
+                    <span id="total-size-display" class="text-xs font-bold text-white font-mono">0.00 MB</span>
+                </div>
+                <div class="w-px h-3 bg-white/10"></div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-files text-accent"></i>
+                    <span class="text-xs font-medium text-slate-400">Files:</span>
+                    <span id="total-count-display" class="text-xs font-bold text-white font-mono">0</span>
+                </div>
+            </div>
+            
+            <!-- Search -->
+            <div class="relative w-full md:w-72 group">
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand transition-colors"></i>
+                <input type="text" id="search-input" placeholder="Search files..." 
+                    class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-all placeholder-slate-500 shadow-inner text-white">
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="max-w-7xl mx-auto w-full px-4 py-8 flex-1 flex flex-col gap-8 relative z-10">
+
+        <!-- UPLOAD ZONE -->
+        <div id="drop-zone" class="relative group w-full bg-card/40 border border-dashed border-slate-700 rounded-3xl p-8 transition-all hover:border-brand hover:bg-card/60 hover:shadow-2xl hover:shadow-brand/5 cursor-pointer overflow-hidden backdrop-blur-sm">
+            <input type="file" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer z-20" multiple>
+            
+            <div class="flex flex-col md:flex-row items-center justify-center gap-6 relative z-10">
+                <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center group-hover:bg-brand group-hover:scale-110 transition-all duration-300 shadow-xl border border-white/5">
+                    <i class="ph-duotone ph-cloud-arrow-up text-3xl text-brand group-hover:text-white transition-colors"></i>
+                </div>
+                <div class="text-center md:text-left">
+                    <h3 class="font-bold text-white text-xl mb-1 group-hover:text-brand transition-colors">Upload Files</h3>
+                    <p class="text-sm text-slate-400">Drag & Drop, Paste (Ctrl+V) or Click to Browse</p>
+                </div>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="upload-status" class="absolute inset-0 bg-[#020617]/95 z-30 flex flex-col items-center justify-center hidden">
+                <div class="text-center mb-6">
+                    <p id="upload-msg" class="text-brand font-bold text-xl tracking-widest animate-pulse">UPLOADING</p>
+                    <p id="upload-count" class="text-xs text-slate-400 mt-2 font-mono">Initializing...</p>
+                </div>
+                <div class="w-64 h-2 bg-slate-800 rounded-full overflow-hidden border border-white/5">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-brand to-accent w-0 transition-all duration-200 shadow-[0_0_15px_#3b82f6]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILES GRID -->
+        <div class="flex-1">
+            <div class="flex justify-between items-end mb-6 border-b border-white/5 pb-4">
+                <h2 class="text-white font-bold text-xl flex items-center gap-2">
+                    <i class="ph-fill ph-folder-open text-brand"></i> Storage
+                </h2>
+                <button onclick="fetchFiles()" class="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors" title="Refresh">
+                    <i class="ph-bold ph-arrows-clockwise text-xl"></i>
+                </button>
+            </div>
+
+            <!-- The Grid -->
+            <div id="file-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-20"></div>
+            
+            <!-- Initial Loader -->
+            <div id="loader" class="flex flex-col items-center justify-center py-20 hidden">
+                <i class="ph-duotone ph-spinner-gap animate-spin text-4xl text-brand mb-3"></i>
+                <p class="text-xs tracking-widest uppercase text-slate-500">Syncing Data...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL (PREVIEW) -->
+    <div id="modal" class="fixed inset-0 z-50 bg-black/90 hidden backdrop-blur-md flex items-center justify-center p-0 md:p-6 transition-all duration-300 opacity-0">
+        <div class="bg-[#0f172a] border border-slate-700/50 rounded-none md:rounded-2xl w-full max-w-6xl h-full md:h-[90vh] shadow-2xl flex flex-col relative transform transition-all scale-95 overflow-hidden" id="modal-content">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center px-4 py-3 md:px-6 md:py-4 border-b border-slate-800 bg-[#0f172a] shrink-0 z-20">
+                <div class="flex items-center gap-4 overflow-hidden">
+                    <div id="modal-icon-container" class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-inner bg-slate-800">
+                        <!-- Icon Injected Here -->
+                    </div>
+                    <div class="min-w-0">
+                        <h3 id="modal-filename" class="font-mono text-sm md:text-base text-white truncate">filename.ext</h3>
+                        <p id="modal-filesize" class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">0 MB</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="copyCode()" id="btn-copy" class="hidden px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-bold transition-all flex items-center gap-2 border border-white/5">
+                        <i class="ph-bold ph-copy"></i> <span class="hidden sm:inline">Copy</span>
+                    </button>
+                    <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-500 transition-colors">
+                        <i class="ph-bold ph-x text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content Area -->
+            <div class="flex-1 overflow-hidden relative bg-[#0b0f19] flex flex-col">
+                
+                <!-- 1. Code View -->
+                <div id="code-preview-container" class="hidden h-full overflow-auto w-full custom-scroll">
+                    <!-- We use 'hljs' class manually in script -->
+                    <pre class="m-0 p-4 min-h-full"><code id="code-block" class="font-mono text-sm bg-transparent !p-0"></code></pre>
+                </div>
+
+                <!-- 2. Image View -->
+                <div id="image-preview-container" class="hidden w-full h-full flex items-center justify-center bg-black/50 p-4">
+                    <img id="modal-img" src="" class="max-w-full max-h-full object-contain rounded shadow-2xl">
+                </div>
+
+                <!-- 3. PDF View -->
+                <div id="pdf-preview-container" class="hidden w-full h-full relative flex flex-col bg-[#525659]">
+                    <!-- PDF Toolbar -->
+                    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-full px-4 py-2 flex items-center gap-4 shadow-2xl z-30">
+                        <button id="zoom-out" class="text-slate-400 hover:text-white transition-colors"><i class="ph-bold ph-minus"></i></button>
+                        <span id="zoom-percent" class="text-xs font-mono font-bold w-12 text-center text-white">100%</span>
+                        <button id="zoom-in" class="text-slate-400 hover:text-white transition-colors"><i class="ph-bold ph-plus"></i></button>
+                        <div class="w-px h-4 bg-slate-700"></div>
+                        <button id="zoom-reset" class="text-xs text-brand font-bold hover:text-white uppercase">Reset</button>
+                    </div>
+                    
+                    <!-- Canvas Wrapper -->
+                    <div id="pdf-wrapper" class="flex-1 overflow-y-auto w-full h-full flex flex-col items-center p-8 gap-6">
+                        <!-- Canvases injected here -->
+                    </div>
+                </div>
+
+                <!-- 4. Generic View -->
+                <div id="generic-preview-container" class="hidden w-full h-full flex flex-col items-center justify-center text-slate-600 gap-6">
+                    <i class="ph-duotone ph-file-lock text-6xl opacity-40"></i>
+                    <p class="text-sm font-medium">No preview available for this file type.</p>
+                </div>
+
+                <!-- Modal Loader -->
+                <div id="modal-loader" class="absolute inset-0 bg-[#0b0f19] z-50 flex flex-col items-center justify-center hidden">
+                    <i class="ph-duotone ph-spinner-gap animate-spin text-3xl text-brand mb-4"></i>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest">Fetching Data...</p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 md:px-6 md:py-4 border-t border-slate-800 bg-[#0f172a] flex flex-col md:flex-row gap-4 justify-between items-center shrink-0 z-20">
+                <button onclick="deleteFile()" id="btn-delete" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-red-500/5 hover:bg-red-500/10 text-red-500 border border-red-500/10 hover:border-red-500/30 text-sm font-bold transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-trash"></i> Delete
+                </button>
+
+                <div class="flex gap-3 w-full md:w-auto">
+                    <a id="btn-tg" href="#" target="_blank" class="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 border border-white/5">
+                        <i class="ph-bold ph-telegram-logo text-blue-400"></i> Locate
+                    </a>
+                    <a id="btn-dl" href="#" target="_blank" class="flex-1 md:flex-none px-8 py-2.5 rounded-xl bg-brand hover:bg-blue-600 text-white text-sm font-bold transition-all shadow-lg shadow-brand/20 flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-download-simple"></i> Download
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 translate-y-40 transition-transform duration-300 z-[100] px-5 py-4 rounded-2xl bg-[#1e293b] border border-slate-700 shadow-2xl flex items-center gap-4">
+        <div id="toast-icon-bg" class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center shrink-0">
+            <i id="toast-icon" class="ph-bold ph-check text-brand text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toast-title" class="text-sm font-bold text-white">Success</h4>
+            <p id="toast-msg" class="text-xs text-slate-400">Operation completed.</p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // PDF Worker Setup
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // --- DOM ELEMENTS ---
+        const fileGrid = document.getElementById('file-grid');
+        const loader = document.getElementById('loader');
+        const searchInput = document.getElementById('search-input');
+        const totalSizeDisplay = document.getElementById('total-size-display');
+        const totalCountDisplay = document.getElementById('total-count-display');
+        
+        // Upload
+        const uploadStatus = document.getElementById('upload-status');
+        const progressBar = document.getElementById('progress-bar');
+        const uploadMsg = document.getElementById('upload-msg');
+        const uploadCount = document.getElementById('upload-count');
+
+        // Modal
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalLoader = document.getElementById('modal-loader');
+        const modalIcon = document.getElementById('modal-icon-container');
+        const btnCopy = document.getElementById('btn-copy');
+        
+        // Preview Wrappers
+        const codeWrapper = document.getElementById('code-preview-container');
+        const codeBlock = document.getElementById('code-block');
+        const imgWrapper = document.getElementById('image-preview-container');
+        const imgEl = document.getElementById('modal-img');
+        const pdfWrapper = document.getElementById('pdf-preview-container');
+        const pdfCanvasWrapper = document.getElementById('pdf-wrapper'); // The scrollable area
+        const genWrapper = document.getElementById('generic-preview-container');
+
+        // State
+        let allFiles = [];
+        let currentFileId = null;
+        let pdfDoc = null;
+        let pdfScale = 1.0;
+
+        // --- ICON LIBRARY & EXTENSION MAPPING ---
+        function getFileMeta(filename, mime) {
+            const ext = filename.split('.').pop().toLowerCase();
+            
+            // Highlight.js Class Mapper
+            // Maps extension -> highlight.js language class
+          // Highlight.js Class Mapper
+            const langMap = {
+                'js': 'javascript', 
+                'py': 'python', 
+                'html': 'xml', 
+                'css': 'css',
+                'json': 'json', 
+                'sh': 'bash', 
+                'c': 'c', 
+                'cpp': 'cpp', 
+                'java': 'java',
+                'php': 'php', 
+                'sql': 'sql', 
+                'yml': 'yaml', 
+                'md': 'markdown', 
+                'xml': 'xml',
+                
+                // ADD THESE LINES TO FIX TEXT FILES:
+                'txt': 'plaintext',
+                'log': 'plaintext',
+                'conf': 'plaintext',
+                'ini': 'ini'
+            };
+
+            // Icon & Color Mapper
+           // Icon & Color Mapper
+            const typeMap = {
+                // Code (Added 'ph' before every icon name)
+                'js':   { icon: 'ph ph-file-js', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+                'py':   { icon: 'ph ph-file-py', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                'html': { icon: 'ph ph-file-html', color: 'text-orange-500', bg: 'bg-orange-500/10' },
+                'css':  { icon: 'ph ph-file-css', color: 'text-sky-400', bg: 'bg-sky-500/10' },
+                'java': { icon: 'ph ph-coffee', color: 'text-red-400', bg: 'bg-red-500/10' },
+                'c':    { icon: 'ph ph-file-c', color: 'text-blue-600', bg: 'bg-blue-600/10' },
+                'cpp':  { icon: 'ph ph-file-cpp', color: 'text-blue-600', bg: 'bg-blue-600/10' },
+                'json': { icon: 'ph ph-brackets-curly', color: 'text-yellow-200', bg: 'bg-yellow-200/10' },
+                'sql':  { icon: 'ph ph-database', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+                'sh':   { icon: 'ph ph-terminal-window', color: 'text-green-400', bg: 'bg-green-500/10' },
+                // Docs
+                'pdf':  { icon: 'ph ph-file-pdf', color: 'text-red-500', bg: 'bg-red-500/10' },
+                'doc':  { icon: 'ph ph-file-doc', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                'docx': { icon: 'ph ph-file-doc', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                'xls':  { icon: 'ph ph-file-xls', color: 'text-green-500', bg: 'bg-green-500/10' },
+                'xlsx': { icon: 'ph ph-file-xls', color: 'text-green-500', bg: 'bg-green-500/10' },
+                'ppt':  { icon: 'ph ph-presentation', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+                'pptx': { icon: 'ph ph-presentation', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+                'txt':  { icon: 'ph ph-file-text', color: 'text-slate-400', bg: 'bg-slate-500/10' },
+                'md':   { icon: 'ph ph-info', color: 'text-white', bg: 'bg-white/10' },
+                // Archives
+                'zip':  { icon: 'ph ph-file-zip', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                'rar':  { icon: 'ph ph-file-zip', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                '7z':   { icon: 'ph ph-file-zip', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                // Media
+                'mp3':  { icon: 'ph ph-music-notes', color: 'text-pink-400', bg: 'bg-pink-500/10' },
+                'wav':  { icon: 'ph ph-music-notes', color: 'text-pink-400', bg: 'bg-pink-500/10' },
+                'mp4':  { icon: 'ph ph-film-strip', color: 'text-rose-400', bg: 'bg-rose-500/10' },
+                'mov':  { icon: 'ph ph-film-strip', color: 'text-rose-400', bg: 'bg-rose-500/10' },
+                // System
+                'exe':  { icon: 'ph ph-app-window', color: 'text-slate-200', bg: 'bg-slate-700/50' },
+            };
+
+            const isImage = mime.startsWith('image/');
+            // Also fix the default icon here:
+            const def = { icon: 'ph ph-file', color: 'text-slate-400', bg: 'bg-slate-700/50' };
+            const meta = typeMap[ext] || def;
+
+            return {
+                ...meta,
+                isImage: isImage,
+                langClass: langMap[ext] || null
+            };
+        }
+
+        // --- FETCH FILES ---
+        async function fetchFiles() {
+            loader.classList.remove('hidden');
+            fileGrid.innerHTML = '';
+            try {
+                const res = await fetch('/api/files');
+                allFiles = await res.json();
+                renderFiles(allFiles);
+                updateStats(allFiles);
+            } catch(e) { console.error(e); }
+            loader.classList.add('hidden');
+        }
+
+        function updateStats(files) {
+            let totalBytes = files.reduce((acc, f) => acc + f.size, 0);
+            let sizeStr = '';
+            if (totalBytes < 1024 * 1024) sizeStr = (totalBytes / 1024).toFixed(2) + ' KB';
+            else if (totalBytes < 1024 * 1024 * 1024) sizeStr = (totalBytes / (1024 * 1024)).toFixed(2) + ' MB';
+            else sizeStr = (totalBytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+            
+            totalSizeDisplay.innerText = sizeStr;
+            totalCountDisplay.innerText = files.length;
+        }
+
+        function renderFiles(files) {
+            fileGrid.innerHTML = '';
+            files.forEach(file => {
+                const meta = getFileMeta(file.name, file.mime);
+                const sizeStr = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                
+                const card = document.createElement('div');
+                card.id = `file-${file.id}`;
+                card.className = "group relative bg-card/60 border border-white/5 rounded-2xl p-4 flex items-center gap-4 hover:bg-card hover:border-brand/40 transition-all cursor-pointer overflow-hidden animate-fade-in";
+                
+                // Icon Section
+                let iconHtml = '';
+                if(meta.isImage) {
+                    iconHtml = `
+                        <div class="w-12 h-12 rounded-lg bg-black/50 border border-white/10 overflow-hidden shrink-0">
+                            <img src="/api/view/${file.id}" loading="lazy" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+                        </div>`;
+                } else {
+                    iconHtml = `
+                        <div class="w-12 h-12 rounded-lg ${meta.bg} flex items-center justify-center shrink-0 border border-white/5">
+                            <i class="${meta.icon} ${meta.color} text-2xl"></i>
+                        </div>`;
+                }
+
+                card.innerHTML = `
+                    ${iconHtml}
+                    <div class="min-w-0 flex-1 z-10">
+                        <h4 class="font-semibold text-sm text-slate-200 truncate group-hover:text-brand transition-colors">${file.name}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 uppercase font-bold tracking-wider">${file.name.split('.').pop().slice(0,4)}</span>
+                            <span class="text-[11px] text-slate-500">${sizeStr}</span>
+                        </div>
+                    </div>
+                    <!-- Hover Effect -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 pointer-events-none"></div>
+                `;
+                
+                card.onclick = () => openModal(file, meta);
+                fileGrid.appendChild(card);
+            });
+        }
+
+        // --- UPLOAD ---
+        const fileInput = document.getElementById('file-input');
+        fileInput.addEventListener('change', (e) => startUpload(e.target.files));
+        window.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            const files = [];
+            for(let i=0; i<items.length; i++) if(items[i].kind==='file') files.push(items[i].getAsFile());
+            startUpload(files);
+        });
+
+        async function startUpload(files) {
+            if(!files || !files.length) return;
+            const arr = Array.from(files);
+            
+            uploadStatus.classList.remove('hidden');
+            
+            for(let i=0; i<arr.length; i++) {
+                const f = arr[i];
+                uploadMsg.innerText = "UPLOADING";
+                uploadCount.innerText = `${f.name} (${i+1}/${arr.length})`;
+                progressBar.style.width = '0%';
+                
+                try {
+                    await uploadSingle(f);
+                } catch(e) { showToast('Upload failed: '+f.name, 'error'); }
+            }
+            
+            uploadStatus.classList.add('hidden');
+            showToast('All files uploaded', 'success');
+            fetchFiles();
+        }
+
+        function uploadSingle(file) {
+            return new Promise((resolve, reject) => {
+                const fd = new FormData();
+                fd.append('files', file);
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/upload', true);
+                xhr.upload.onprogress = (e) => {
+                    if(e.lengthComputable) progressBar.style.width = Math.round((e.loaded/e.total)*100) + '%';
+                };
+                xhr.onload = () => xhr.status===200 ? resolve() : reject();
+                xhr.onerror = reject;
+                xhr.send(fd);
+            });
+        }
+
+        // --- MODAL LOGIC ---
+        async function openModal(file, meta) {
+            currentFileId = file.id;
+            
+            // Text Details
+            document.getElementById('modal-filename').innerText = file.name;
+            document.getElementById('modal-filesize').innerText = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+            document.getElementById('btn-tg').href = file.message_link;
+            
+            // Icon
+            modalIcon.className = `w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-inner ${meta.bg || 'bg-slate-800'}`;
+            modalIcon.innerHTML = meta.isImage ? '<i class="ph-fill ph-image text-brand text-xl"></i>' : `<i class="${meta.icon} ${meta.color} text-xl"></i>`;
+
+            // Reset Views
+            [codeWrapper, imgWrapper, pdfWrapper, genWrapper, btnCopy].forEach(el => el.classList.add('hidden'));
+            const btnDl = document.getElementById('btn-dl');
+            btnDl.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Loading...';
+            btnDl.classList.add('pointer-events-none', 'opacity-50');
+
+            // Show Modal
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+            modalLoader.classList.remove('hidden');
+
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            // 1. IMAGE
+            if(meta.isImage) {
+                imgWrapper.classList.remove('hidden');
+                imgEl.src = `/api/view/${file.id}`;
+                modalLoader.classList.add('hidden');
+            }
+            // 2. CODE (Fixed Highlighting)
+            else if(meta.langClass) {
+                codeWrapper.classList.remove('hidden');
+                try {
+                    const res = await fetch(`/api/content/${file.id}`);
+                    const text = await res.text();
+                    
+                    codeBlock.className = `language-${meta.langClass}`; // Set class BEFORE highlight
+                    codeBlock.textContent = text;
+                    codeBlock.removeAttribute('data-highlighted'); // Force reset
+                    
+                    hljs.highlightElement(codeBlock); // Color it
+                    btnCopy.classList.remove('hidden');
+                } catch(e) {
+                    codeBlock.textContent = "Error loading preview.";
+                }
+                modalLoader.classList.add('hidden');
+            }
+            // 3. PDF
+            else if(ext === 'pdf') {
+                pdfWrapper.classList.remove('hidden');
+                await renderPdf(file.id);
+                modalLoader.classList.add('hidden');
+            }
+            // 4. GENERIC
+            else {
+                genWrapper.classList.remove('hidden');
+                modalLoader.classList.add('hidden');
+            }
+
+            // Get DL Link
+            try {
+                const res = await fetch(`/api/download/${file.id}`);
+                const d = await res.json();
+                btnDl.href = d.link;
+                btnDl.innerHTML = '<i class="ph-bold ph-download-simple"></i> Download';
+                btnDl.classList.remove('pointer-events-none', 'opacity-50');
+            } catch(e) {}
+        }
+
+        // --- PDF LOGIC (Fixed Zoom) ---
+        async function renderPdf(fileId) {
+            pdfCanvasWrapper.innerHTML = '';
+            pdfScale = 1.0;
+            document.getElementById('zoom-percent').innerText = '100%';
+            
+            try {
+                const loadingTask = pdfjsLib.getDocument(`/api/proxy/${fileId}`);
+                pdfDoc = await loadingTask.promise;
+                
+                for(let i=1; i<=pdfDoc.numPages; i++) {
+                    const page = await pdfDoc.getPage(i);
+                    const viewport = page.getViewport({ scale: 1.5 }); // Good base quality
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'pdf-page-canvas bg-white';
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    // Initial CSS Width (Responsive)
+                    canvas.style.width = '100%';
+                    canvas.style.maxWidth = '800px'; 
+                    
+                    pdfCanvasWrapper.appendChild(canvas);
+                    
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+                }
+            } catch(e) { console.error("PDF Error", e); }
+        }
+
+        // Apply Zoom to existing canvases
+        function applyZoom() {
+            const canvases = document.querySelectorAll('.pdf-page-canvas');
+            const baseSize = 800; // base max-width in px
+            const newSize = baseSize * pdfScale;
+            
+            document.getElementById('zoom-percent').innerText = Math.round(pdfScale * 100) + '%';
+            
+            canvases.forEach(c => {
+                c.style.maxWidth = newSize + 'px';
+            });
+        }
+
+        document.getElementById('zoom-in').onclick = () => { if(pdfScale < 3) { pdfScale += 0.25; applyZoom(); }};
+        document.getElementById('zoom-out').onclick = () => { if(pdfScale > 0.5) { pdfScale -= 0.25; applyZoom(); }};
+        document.getElementById('zoom-reset').onclick = () => { pdfScale = 1.0; applyZoom(); };
+
+
+        // --- UTILS ---
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(codeBlock.textContent);
+            showToast("Code copied to clipboard", "success");
+        }
+
+        async function deleteFile() {
+            if(!currentFileId || !confirm("Delete file permanently?")) return;
+            document.getElementById('btn-delete').innerText = "Deleting...";
+            try {
+                const res = await fetch(`/api/delete/${currentFileId}`, { method: 'DELETE' });
+                const d = await res.json();
+                if(d.success) {
+                    document.getElementById(`file-${currentFileId}`).remove();
+                    allFiles = allFiles.filter(f => f.id !== currentFileId);
+                    updateStats(allFiles);
+                    showToast("File deleted", "success");
+                    closeModal();
+                } else showToast("Delete failed", "error");
+            } catch(e) { showToast("Server error", "error"); }
+            document.getElementById('btn-delete').innerHTML = '<i class="ph-bold ph-trash"></i> Delete';
+        }
+
+        function showToast(title, type) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-icon-bg').className = `w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${type==='error'?'bg-red-500/20':'bg-brand/20'}`;
+            document.getElementById('toast-icon').className = `text-xl font-bold ${type==='error'?'ph-fill ph-warning text-red-500':'ph-bold ph-check text-brand'}`;
+            t.classList.remove('translate-y-40');
+            setTimeout(() => t.classList.add('translate-y-40'), 3000);
+        }
+
+        // Search
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            renderFiles(allFiles.filter(f => f.name.toLowerCase().includes(term)));
+        });
+
+        // Init
+        fetchFiles();
+
+    </script>
+</body>
+</html>

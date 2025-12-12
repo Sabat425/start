@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Amret Mobile - Optimized</title>
+    <!-- Fonts & Icons with display=swap for better performance -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Kantumruy+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', '-apple-system', 'system-ui', 'sans-serif'],
+                        khmer: ['Kantumruy Pro', 'sans-serif'],
+                    },
+                    colors: {
+                        amret: { lightest: '#ebf1ed', light: '#b9cabe', sage: '#81938a', slate: '#50605a', dark: '#2d2e2b', black: '#121212', accent: '#4ade80' }
+                    },
+                    animation: { 'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both' },
+                    keyframes: { shake: { '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' }, '20%, 80%': { transform: 'translate3d(2px, 0, 0)' }, '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' }, '40%, 60%': { transform: 'translate3d(4px, 0, 0)' } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { background: #121212; overscroll-behavior-y: none; font-family: 'Poppins', -apple-system, system-ui, sans-serif; }
+        .scroll-container { -webkit-overflow-scrolling: touch; overflow-y: auto; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass { background: rgba(45, 46, 43, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); transform: translateZ(0); }
+        .scan-btn-glow { position: relative; will-change: transform; }
+        .scan-btn-glow::before { content: ''; position: absolute; top: -8px; left: -8px; right: -8px; bottom: -8px; border-radius: 50%; background: rgba(129, 147, 138, 0.3); z-index: -1; animation: pulse-simple 2s ease-in-out infinite; }
+        @keyframes pulse-simple { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 0.2; } }
+        .hover-card { transition: transform 0.2s ease, opacity 0.2s ease; }
+        @media (hover: hover) { .hover-card:hover { transform: translateY(-2px); } }
+        .hover-card:active { transform: scale(0.98); opacity: 0.9; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; opacity: 0; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-backdrop { transition: opacity 0.25s ease; }
+        .modal-content { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .khqr-header { background: linear-gradient(135deg, #2d2e2b 0%, #50605a 100%); position: relative; }
+        .khqr-header::after { content: ''; position: absolute; bottom: -10px; left: 0; width: 100%; height: 20px; background: white; border-radius: 20px 20px 0 0; }
+        .stagger-1 { animation-delay: 0.1s; } .stagger-2 { animation-delay: 0.15s; } .stagger-3 { animation-delay: 0.2s; } .stagger-4 { animation-delay: 0.25s; }
+
+        /* PIN SCREEN CSS */
+        .keypad-btn { width: 75px; height: 75px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 500; color: white; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); transition: background 0.2s, transform 0.1s; }
+        .keypad-btn:active { background: rgba(255, 255, 255, 0.2); transform: scale(0.9); }
+        .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #81938a; transition: all 0.2s ease; }
+        .pin-dot.filled { background-color: #ebf1ed; border-color: #ebf1ed; box-shadow: 0 0 10px rgba(235, 241, 237, 0.5); }
+        .pin-dot.error { border-color: #ef4444; background-color: #ef4444; }
+    </style>
+</head>
+<body class="text-white h-screen w-screen overflow-hidden selection:bg-amret-sage selection:text-white">
+
+    <!-- ======================= -->
+    <!--     PIN LOCK SCREEN     -->
+    <!--   (Added this on top)   -->
+    <!-- ======================= -->
+    <div id="pinScreen" class="fixed inset-0 z-[100] bg-[#121212] flex flex-col items-center justify-between pb-8 pt-12">
+        <div class="flex flex-col items-center gap-4 animate-fade-in">
+            <div class="w-20 h-20 rounded-full p-1 border border-amret-sage/30">
+                <img src="" id="pinAvatar" class="w-full h-full rounded-full object-cover grayscale opacity-80">
+            </div>
+            <div class="text-center">
+                <p class="text-amret-lightest text-lg font-medium tracking-wide">Enter PIN</p>
+                <p class="text-amret-sage text-xs mt-1">Unlock your dashboard</p>
+            </div>
+        </div>
+        <div class="flex gap-6 mb-4" id="pinDotsContainer">
+            <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+        <div class="flex flex-col gap-5 w-full max-w-[320px] px-6">
+            <div class="grid grid-cols-3 gap-x-6 gap-y-5 justify-items-center">
+                <div class="keypad-btn" onclick="pressKey(1)">1</div><div class="keypad-btn" onclick="pressKey(2)">2</div><div class="keypad-btn" onclick="pressKey(3)">3</div>
+                <div class="keypad-btn" onclick="pressKey(4)">4</div><div class="keypad-btn" onclick="pressKey(5)">5</div><div class="keypad-btn" onclick="pressKey(6)">6</div>
+                <div class="keypad-btn" onclick="pressKey(7)">7</div><div class="keypad-btn" onclick="pressKey(8)">8</div><div class="keypad-btn" onclick="pressKey(9)">9</div>
+                <div class="flex items-center justify-center w-[75px] h-[75px] text-amret-sage/50"><i class="fa-solid fa-face-smile text-2xl"></i></div>
+                <div class="keypad-btn" onclick="pressKey(0)">0</div>
+                <div class="flex items-center justify-center w-[75px] h-[75px] active:scale-90" onclick="deleteKey()"><i class="fa-solid fa-delete-left text-2xl text-amret-lightest"></i></div>
+            </div>
+            <div class="text-center mt-4"><button class="text-xs text-amret-sage font-medium tracking-wider uppercase">Forgot PIN?</button></div>
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!--  YOUR ORIGINAL DASHBOARD -->
+    <!-- (Wrapped in ID for logic) -->
+    <!-- ======================= -->
+    <div id="dashboardContent" class="h-full w-full opacity-0 pointer-events-none transition-opacity duration-500">
+        <!-- MAIN SCROLLABLE CONTENT -->
+        <div class="h-full w-full overflow-y-auto no-scrollbar pb-32 scroll-container">
+            
+            <!-- HEADER -->
+            <header class="sticky top-0 z-40 px-6 py-5 flex justify-between items-center glass animate-fade-in">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-full border-2 border-amret-sage overflow-hidden p-0.5">
+                        <img src="" id="headerAvatar" alt="Profile" class="w-full h-full rounded-full object-cover">
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-amret-light uppercase tracking-wider">Good Evening</span>
+                        <!-- Added ID -->
+                        <span class="text-md font-bold text-amret-lightest" id="headerName">...</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="openQRModal()" class="w-10 h-10 rounded-full glass flex items-center justify-center text-amret-lightest active:scale-90 transition-transform">
+                        <i class="fa-solid fa-qrcode text-lg"></i>
+                    </button>
+                    <!-- Added LOGOUT Logic -->
+                    <button onclick="logout()" class="w-10 h-10 rounded-full glass flex items-center justify-center relative text-amret-lightest active:scale-90 transition-transform">
+                        <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- DASHBOARD CONTENT -->
+            <main class="px-5 mt-2">
+                
+                <!-- BALANCE CARD - Simplified shadows -->
+                <div class="w-full h-52 rounded-[30px] relative overflow-hidden animate-slide-up stagger-1 hover-card" style="box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+                    <!-- Simple gradient background -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-[#81938a] to-[#50605a]"></div>
+                    
+                    <!-- Simplified decorative elements -->
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-5 rounded-full"></div>
+                    <div class="absolute -left-10 bottom-0 w-32 h-32 bg-black opacity-5 rounded-full"></div>
+                    <div class="relative z-10 p-7 flex flex-col justify-between h-full">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs text-amret-lightest/80 font-medium tracking-wide">Total Balance</span>
+                                <div class="px-2 py-1 rounded-md bg-white/10 border border-white/10">
+                                    <!-- Added ID -->
+                                    <span class="text-[10px] font-bold text-white" id="mainCurrency">USD</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <!-- Added ID -->
+                                <h1 id="balanceAmount" class="text-3xl font-bold text-white tracking-tight">...</h1>
+                                <button onclick="toggleBalance()" class="text-white/70 active:scale-90 transition-transform">
+                                    <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-[10px] text-white/80">Savings Account</span>
+                                <div class="flex items-center gap-2">
+                                    <!-- Added ID -->
+                                    <span class="text-sm font-mono text-white tracking-widest" id="accountIdDisplay">•••• ••••</span>
+                                    <i class="fa-regular fa-copy text-xs text-white/60 cursor-pointer active:scale-90 transition-transform"></i>
+                                </div>
+                            </div>
+                            <button class="bg-black/30 text-white px-5 py-2.5 rounded-2xl text-xs font-semibold border border-white/10 active:scale-95 transition-transform">
+                                Top Up
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SERVICES GRID -->
+                <div class="grid grid-cols-4 gap-4 mt-8 animate-slide-up stagger-2">
+                    
+                    <div class="flex flex-col items-center gap-2.5 cursor-pointer group">
+                        <div class="w-[60px] h-[60px] rounded-[22px] glass flex items-center justify-center text-amret-light group-active:scale-90 transition-transform">
+                            <i class="fa-solid fa-building-columns text-xl"></i>
+                        </div>
+                        <span class="text-[11px] font-medium text-amret-light">Accounts</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center gap-2.5 cursor-pointer group">
+                        <div class="w-[60px] h-[60px] rounded-[22px] glass flex items-center justify-center text-amret-light group-active:scale-90 transition-transform">
+                            <i class="fa-regular fa-credit-card text-xl"></i>
+                        </div>
+                        <span class="text-[11px] font-medium text-amret-light">Cards</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2.5 cursor-pointer group">
+                        <div class="w-[60px] h-[60px] rounded-[22px] glass flex items-center justify-center text-amret-light group-active:scale-90 transition-transform">
+                            <i class="fa-solid fa-bolt text-xl"></i>
+                        </div>
+                        <span class="text-[11px] font-medium text-amret-light">Utilities</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2.5 cursor-pointer group">
+                        <div class="w-[60px] h-[60px] rounded-[22px] glass flex items-center justify-center text-amret-light group-active:scale-90 transition-transform">
+                            <i class="fa-solid fa-ellipsis text-xl"></i>
+                        </div>
+                        <span class="text-[11px] font-medium text-amret-light">More</span>
+                    </div>
+                </div>
+
+                <!-- PROMOTION BANNER -->
+                <div class="mt-8 animate-slide-up stagger-3">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-amret-lightest text-sm font-semibold">Special Offers</h2>
+                        <a href="#" class="text-[11px] text-amret-sage active:opacity-70 transition-opacity">See All</a>
+                    </div>
+                    <div class="relative w-full h-36 rounded-2xl overflow-hidden cursor-pointer hover-card" style="box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+                        <img src="https://images.unsplash.com/photo-1601597111158-2fceff292cdc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" class="w-full h-full object-cover" alt="Promo">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded w-fit mb-1.5">WINNER</div>
+                            <p class="text-white text-sm font-bold leading-tight">Win 10 Million KHR with Amret Mobile!</p>
+                            <p class="text-white/70 text-[10px] mt-1">Transactions over $10 eligible.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RECENT TRANSACTIONS -->
+                <div class="mt-8 pb-4 animate-slide-up stagger-4">
+                    <h2 class="text-amret-lightest text-sm font-semibold mb-4">Transactions</h2>
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl glass cursor-pointer hover-card">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-amret-dark">
+                                    <i class="fa-brands fa-netflix text-red-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-amret-lightest">Netflix</p>
+                                    <p class="text-[10px] text-amret-slate mt-0.5">Subscription</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-white">-$12.00</p>
+                                <p class="text-[9px] text-amret-slate mt-0.5">Today</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl glass cursor-pointer hover-card">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-10 h-10 rounded-full bg-amret-sage/20 text-amret-light border border-amret-sage/30 flex items-center justify-center">
+                                    <i class="fa-solid fa-arrow-down text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-amret-lightest">Sokha Dara</p>
+                                    <p class="text-[10px] text-amret-slate mt-0.5">Transfer from ABA</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-amret-accent">+$150.00</p>
+                                <p class="text-[9px] text-amret-slate mt-0.5">Yesterday</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- FIXED BOTTOM NAVIGATION -->
+        <nav class="fixed bottom-6 left-4 right-4 z-50 h-[75px] glass rounded-[28px] flex justify-between items-center px-6" style="box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
+            <a href="#" class="flex flex-col items-center gap-1.5 text-amret-sage active:opacity-70 transition-opacity w-12">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[9px] font-medium">Home</span>
+            </a>
+            <a href="#" class="flex flex-col items-center gap-1.5 text-amret-light active:opacity-70 transition-opacity w-12">
+                <i class="fa-solid fa-wallet text-lg"></i>
+                <span class="text-[9px] font-medium">Account</span>
+            </a>
+            <!-- Floating Center Button -->
+            <div class="relative -top-7">
+                <button onclick="openQRModal()" class="w-[68px] h-[68px] rounded-full bg-gradient-to-tr from-amret-slate to-amret-sage text-white flex items-center justify-center border-[5px] border-amret-dark active:scale-95 transition-transform scan-btn-glow" style="box-shadow: 0 8px 25px rgba(129,147,138,0.4);">
+                    <i class="fa-solid fa-qrcode text-2xl"></i>
+                </button>
+                <span class="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-[10px] font-bold text-white tracking-wide opacity-80">SCAN</span>
+            </div>
+            <a href="#" class="flex flex-col items-center gap-1.5 text-amret-light active:opacity-70 transition-opacity w-12">
+                <i class="fa-solid fa-money-bill-transfer text-lg"></i>
+                <span class="text-[9px] font-medium">Transfer</span>
+            </a>
+            <a href="#" class="flex flex-col items-center gap-1.5 text-amret-light active:opacity-70 transition-opacity w-12">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-[9px] font-medium">Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- QR MODAL -->
+    <div id="qrModal" class="fixed inset-0 z-[60] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/80 opacity-0 modal-backdrop" id="modalBackdrop" onclick="closeQRModal()"></div>
+        <!-- Modal Content -->
+        <div class="absolute bottom-0 left-0 right-0 rounded-t-[35px] bg-[#1a1b19] border-t border-white/10 p-6 translate-y-full modal-content" id="modalContent">
+            
+            <div class="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-6 opacity-50"></div>
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-white text-lg font-bold">Receive Money</h2>
+                    <p class="text-amret-slate text-xs">Show this QR to receive funds</p>
+                </div>
+                <button onclick="closeQRModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/10 active:scale-90 transition-transform">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="w-full bg-white rounded-2xl overflow-hidden mb-6" style="box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                
+                <div class="khqr-header p-4 text-center">
+                    <div class="flex justify-center items-center gap-2 mb-1">
+                        <div class="bg-white/20 p-1 rounded px-2"><span class="font-bold italic text-white text-sm">KHQR</span></div>
+                    </div>
+                    <!-- Added ID -->
+                    <h3 class="text-white font-bold text-sm uppercase tracking-wide" id="qrModalName">Sok Sambath</h3>
+                    <!-- Added ID -->
+                    <div class="text-white/70 text-[10px] font-mono mt-0.5"><span id="qrModalPhone">...</span> | <span id="currentCurrencyText">USD</span></div>
+                </div>
+                <div class="bg-white p-6 flex flex-col items-center">
+                    <div class="text-gray-900 font-bold text-xl mb-4" id="receiveAmount">$0.00</div>
+                    
+                    <div class="w-48 h-48 relative">
+                        <img id="qrImage" src="" class="w-full h-full object-contain mix-blend-multiply opacity-90" alt="QR Code">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-10 h-10 bg-white rounded-full p-1 flex items-center justify-center" style="box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                                <i class="fa-solid fa-dollar-sign text-amret-slate text-lg font-bold" id="centerIcon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-center">
+                    <div class="bg-gray-200 p-1 rounded-xl flex w-full max-w-[200px]">
+                        <button onclick="switchCurrency('USD')" id="btnUSD" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white text-amret-black active:scale-95 transition-transform" style="box-shadow: 0 2px 4px rgba(0,0,0,0.1);">USD</button>
+                        <button onclick="switchCurrency('KHR')" id="btnKHR" class="flex-1 py-2 rounded-lg text-xs font-bold text-gray-500 active:scale-95 transition-transform">KHR</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between gap-4 px-2 mb-6">
+                <div class="flex flex-col items-center gap-2 cursor-pointer">
+                    <div class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white active:scale-90 transition-transform">
+                        <i class="fa-solid fa-download"></i>
+                    </div>
+                    <span class="text-[10px] text-gray-400">Save</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 cursor-pointer">
+                    <div class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white active:scale-90 transition-transform">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </div>
+                    <span class="text-[10px] text-gray-400">Share</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 cursor-pointer">
+                    <div class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white active:scale-90 transition-transform">
+                        <i class="fa-regular fa-copy"></i>
+                    </div>
+                    <span class="text-[10px] text-gray-400">Link</span>
+                </div>
+                <button class="bg-[#C5A866] text-white px-6 py-2 rounded-full font-bold text-xs h-12 flex items-center gap-2 active:scale-95 transition-transform" style="box-shadow: 0 4px 12px rgba(197,168,102,0.3);">
+                    <i class="fa-solid fa-pen"></i> Set Amount
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // 1. SESSION CHECK
+        const userId = localStorage.getItem('bank_userId');
+        const loginTime = localStorage.getItem('bank_loginTime');
+        const MAX_SESSION = 5 * 60 * 1000; // 5 Minutes
+        if (!userId || !loginTime || (Date.now() - loginTime > MAX_SESSION)) {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // 2. STATE
+        let currentPin = "";
+        let isLocked = true;
+        let currentUser = {};
+        let accounts = [];
+        let actualBalance = "0.00";
+        let isBalanceVisible = true;
+
+        loadBankData();
+
+        // 3. PIN LOGIC
+        function pressKey(num) {
+            if (currentPin.length < 4 && isLocked) {
+                currentPin += num;
+                updatePinUI();
+                if (currentPin.length === 4) verifyPin();
+            }
+        }
+        function deleteKey() {
+            if (currentPin.length > 0) { currentPin = currentPin.slice(0, -1); updatePinUI(); }
+        }
+        function updatePinUI() {
+            document.querySelectorAll('.pin-dot').forEach((dot, i) => {
+                if(i < currentPin.length) dot.classList.add('filled');
+                else dot.classList.remove('filled', 'error');
+            });
+        }
+        async function verifyPin() {
+            try {
+                const res = await fetch('/api/verify-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, pin: currentPin })
+                });
+                const data = await res.json();
+                if (data.success) unlockApp();
+                else showPinError();
+            } catch (e) { showPinError(); }
+        }
+        function showPinError() {
+            const container = document.getElementById('pinDotsContainer');
+            container.classList.add('animate-shake');
+            document.querySelectorAll('.pin-dot').forEach(d => d.classList.add('error'));
+            if(navigator.vibrate) navigator.vibrate(200);
+            setTimeout(() => { container.classList.remove('animate-shake'); currentPin = ""; updatePinUI(); }, 500);
+        }
+        function unlockApp() {
+            isLocked = false;
+            document.getElementById('pinScreen').style.opacity = '0';
+            document.getElementById('pinScreen').style.pointerEvents = 'none';
+            document.getElementById('dashboardContent').style.opacity = '1';
+            document.getElementById('dashboardContent').style.pointerEvents = 'auto';
+        }
+
+        // 4. DATA LOGIC
+        async function loadBankData() {
+            try {
+                const res = await fetch(`/api/data/${userId}`);
+                const data = await res.json();
+                if (data.error) throw new Error();
+                currentUser = data.user;
+                accounts = data.accounts;
+                updateUI();
+            } catch (error) { console.error("Load error"); }
+        }
+
+        function updateUI() {
+            document.getElementById('headerName').textContent = currentUser.name;
+            document.getElementById('qrModalName').textContent = currentUser.name;
+            document.getElementById('qrModalPhone').textContent = currentUser.phone_number;
+            const avatarUrl = `https://ui-avatars.com/api/?name=${currentUser.name}&background=81938a&color=fff`;
+            document.getElementById('headerAvatar').src = avatarUrl;
+            document.getElementById('pinAvatar').src = `https://ui-avatars.com/api/?name=${currentUser.name}&background=2d2e2b&color=fff`;
+            
+            const mainAccount = accounts.find(a => a.currency === 'USD') || accounts[0];
+            if (mainAccount) updateAccountDisplay(mainAccount);
+        }
+
+        function updateAccountDisplay(acc) {
+            actualBalance = acc.currency === 'USD' ? `$${acc.balance}` : `${acc.balance} ៛`;
+            document.getElementById('balanceAmount').textContent = isBalanceVisible ? actualBalance : "$ •••••••";
+            document.getElementById('mainCurrency').textContent = acc.currency;
+            document.getElementById('accountIdDisplay').textContent = acc.account_id;
+            document.getElementById('currentCurrencyText').textContent = acc.currency;
+            document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${acc.userqrcodedata}`;
+            
+            // Icon Logic
+            const centerIcon = document.getElementById('centerIcon');
+            if(acc.currency === 'USD') centerIcon.className = "fa-solid fa-dollar-sign text-amret-slate text-lg font-bold";
+            else centerIcon.className = "fa-solid fa-k text-amret-slate text-lg font-bold";
+        }
+
+        function switchCurrency(curr) {
+            const acc = accounts.find(a => a.currency === curr);
+            if (!acc) return alert(`No ${curr} account found.`);
+            updateAccountDisplay(acc);
+            
+            const btnUSD = document.getElementById('btnUSD');
+            const btnKHR = document.getElementById('btnKHR');
+            if(curr === 'USD') {
+                btnUSD.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-white text-amret-black active:scale-95 transition-transform shadow";
+                btnKHR.className = "flex-1 py-2 rounded-lg text-xs font-bold text-gray-500 active:scale-95 transition-transform";
+            } else {
+                btnKHR.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-white text-amret-black active:scale-95 transition-transform shadow";
+                btnUSD.className = "flex-1 py-2 rounded-lg text-xs font-bold text-gray-500 active:scale-95 transition-transform";
+            }
+        }
+
+        function toggleBalance() {
+            isBalanceVisible = !isBalanceVisible;
+            const eye = document.getElementById('eyeIcon');
+            document.getElementById('balanceAmount').textContent = isBalanceVisible ? actualBalance : "$ •••••••";
+            eye.className = isBalanceVisible ? "fa-regular fa-eye" : "fa-regular fa-eye-slash";
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // Modal Logic
+        const modal = document.getElementById('qrModal');
+        const modalContent = document.getElementById('modalContent');
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        function openQRModal() {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            requestAnimationFrame(() => { modalBackdrop.style.opacity = '1'; modalContent.style.transform = 'translateY(0)'; });
+        }
+        function closeQRModal() {
+            modalBackdrop.style.opacity = '0';
+            modalContent.style.transform = 'translateY(100%)';
+            setTimeout(() => { modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
+        }
+    </script>
+</body>
+</html>
